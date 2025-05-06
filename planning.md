@@ -20,11 +20,7 @@ The system is modular, inspired by the Potpie parsing module, with clear separat
 │   ├── neo4j-service.ts          # Neo4j database operations
 │   ├── repo-fetcher.ts           # Repository acquisition
 │   ├── repo-scanner.ts           # Directory traversal and file filtering
-│   └── queries/                  # Tree-sitter query files for different languages
-│       ├── javascript.scm
-│       ├── typescript.scm
-│       ├── python.scm
-│       └── ...
+|
 ├── knowledge_graph/
 │   └── embedding-service.ts      # Vector embedding generation
 ├── types/

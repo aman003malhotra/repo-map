@@ -5,6 +5,9 @@
   "description": "A TypeScript tool to parse code repositories and generate a graph map in Neo4j",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "repo-map": "dist/cli/index.js"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -31,11 +34,14 @@
     "commander": "^13.1.0",
     "dotenv": "^16.5.0",
     "eslint": "^9.25.1",
+    "glob": "^11.0.2",
     "globals": "^16.0.0",
     "jsnetworkx": "^0.3.4",
     "neo4j-driver": "^5.28.1",
+    "node-test": "^1.4.6",
     "prettier": "^3.5.3",
     "simple-git": "^3.27.0",
+    "tar": "^7.4.3",
     "tree-sitter": "^0.21.1",
     "tree-sitter-javascript": "^0.23.1",
     "tree-sitter-typescript": "^0.23.2",

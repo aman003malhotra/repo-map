@@ -10,12 +10,14 @@ export interface RepoInfo {
   repoId: string;
   /** Local path where the repository is stored */
   localPath: string;
-  /** Commit SHA (for Git repositories) */
-  commitSha?: string;
-  /** Branch name (for Git repositories) */
-  branch?: string;
+  /** Remote repository URL */
+  remoteUrl: string;
+  /** Branch name */
+  branch: string;
   /** Whether the repository is a Git repository */
   isGit: boolean;
+  /** Commit SHA (for Git repositories) */
+  commitSha?: string;
 }
 
 /**
@@ -69,6 +71,16 @@ export interface GraphNodeData {
   endLine: number;
   /** Source code text */
   text?: string;
+  /** Whether the node represents a directory */
+  isDirectory?: boolean;
+  /** File size in bytes (for files) */
+  size?: number;
+  /** Creation timestamp */
+  createdAt?: string;
+  /** Last modification timestamp */
+  modifiedAt?: string;
+  /** Whether the node represents a reference (as opposed to a definition) */
+  isReference?: boolean;
 }
 
 /**

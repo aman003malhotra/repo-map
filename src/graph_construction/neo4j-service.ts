@@ -186,13 +186,11 @@ export class Neo4jService {
 
     const session = this.driver.session();
     try {
-      // Use UNWIND for batch creation
+      // Use UNWIND with MERGE to prevent duplicate nodes
       await session.run(
         `UNWIND $nodes AS node
-         CREATE (n:NODE)
-         SET n = node.properties
-         SET n.nodeId = node.nodeId
-         SET n.repoId = node.repoId
+         MERGE (n:NODE {nodeId: node.nodeId, repoId: node.repoId})
+         SET n += node.properties
          WITH n, node
          CALL apoc.create.addLabels(id(n), node.labels) YIELD node AS n2
          RETURN count(*)`,
@@ -237,7 +235,7 @@ export class Neo4jService {
           `UNWIND $relationships AS rel
            MATCH (source:NODE {nodeId: rel.sourceId, repoId: rel.properties.repoId})
            MATCH (target:NODE {nodeId: rel.targetId, repoId: rel.properties.repoId})
-           CREATE (source)-[r:${type}]->(target)
+           MERGE (source)-[r:${type}]->(target)
            SET r = rel.properties
            RETURN count(*)`,
           { relationships: rels }

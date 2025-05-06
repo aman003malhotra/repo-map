@@ -111,23 +111,42 @@ export type FileNode = {
   nodes: ASTNode[];
 };
 
+// Maximum file size to parse (1MB)
+const MAX_FILE_SIZE = 1024 * 1024;
+
 export async function parseFile(filePath: string, repoRoot: string): Promise<Tag[]> {
   return new Promise((resolve, reject) => {
     try {
+      // Skip large files
+      const stats = fs.statSync(filePath);
+      if (stats.size > MAX_FILE_SIZE) {
+        console.warn(`⚠️  Skipping large file: ${filePath} (${(stats.size / 1024 / 1024).toFixed(2)}MB)`);
+        return resolve([]);
+      }
+
       const content = fs.readFileSync(filePath, 'utf-8');
       const extension = path.extname(filePath).toLowerCase();
       const relPath = path.relative(repoRoot, filePath);
       let currentClass: string | null = null;
 
       if (['.js', '.ts', '.tsx', '.jsx'].includes(extension)) {
-        const ast = parse(content, {
-          sourceType: 'module',
-          plugins: [
-            'jsx', 'typescript', 'classProperties', 'decorators-legacy',
-            'objectRestSpread', 'dynamicImport', 'exportDefaultFrom',
-            'optionalChaining', 'nullishCoalescingOperator'
-          ],
-        });
+        let ast;
+        try {
+          ast = parse(content, {
+            sourceType: 'module',
+            plugins: [
+              'jsx', 'typescript', 'classProperties', 'decorators-legacy',
+              'objectRestSpread', 'dynamicImport', 'exportDefaultFrom',
+              'optionalChaining', 'nullishCoalescingOperator'
+            ],
+            // Limit the number of tokens to prevent DoS
+            tokens: false,
+          });
+        } catch (parseError: unknown) {
+          const errorMessage = parseError instanceof Error ? parseError.message : 'Unknown parsing error';
+          console.warn(`⚠️  Error parsing ${filePath}: ${errorMessage}`);
+          return resolve([]);
+        }
 
         const tags: Tag[] = [];
 
@@ -283,14 +302,13 @@ export async function parseFile(filePath: string, repoRoot: string): Promise<Tag
             });
           }
 
-          // Track function calls
-          if (t.isCallExpression(node)) {
+          // Track function calls - limit depth to prevent stack overflow
+          if (t.isCallExpression(node) && path.getAncestry().length < 20) {
             const functionName = getFunctionName(node);
             
             if (shouldIgnoreFunctionCall(node)) {
               return;
             }
-            console.log(node);
             // Create reference tag
             tags.push({
               name: functionName,

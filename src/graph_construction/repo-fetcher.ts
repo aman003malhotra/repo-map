@@ -72,12 +72,14 @@ async function cloneRepository(
     
     const commitSha = await git.revparse(['HEAD']);
     
+    const currentBranch = branch || await git.revparse(['--abbrev-ref', 'HEAD']);
     return {
       repoId: repoUrl,
       localPath,
-      commitSha,
-      branch: branch || await git.revparse(['--abbrev-ref', 'HEAD']),
+      remoteUrl: repoUrl,
+      branch: currentBranch,
       isGit: true,
+      commitSha,
     };
   }
   
@@ -95,13 +97,14 @@ async function cloneRepository(
   const repoGit: SimpleGit = simpleGit.default(localPath);
   const commitSha = await repoGit.revparse(['HEAD']);
   const currentBranch = await repoGit.revparse(['--abbrev-ref', 'HEAD']);
-  
+  const resolvedBranch = branch || currentBranch || 'main';
   return {
     repoId: repoUrl,
     localPath,
-    commitSha,
-    branch: branch || currentBranch,
+    remoteUrl: repoUrl,
+    branch: resolvedBranch,
     isGit: true,
+    commitSha,
   };
 }
 
@@ -169,8 +172,10 @@ async function downloadRepository(
   return {
     repoId: repoUrl,
     localPath,
+    remoteUrl: repoUrl,
     branch: branchName,
     isGit: false,
+    commitSha: undefined,
   };
 }
 
@@ -197,14 +202,18 @@ async function setupLocalRepository(
     branch = await git.revparse(['--abbrev-ref', 'HEAD']);
   }
   
+  // Ensure branch is always a string
+  const resolvedBranch = branch || 'main';
+  
   // Use the original path as the local path
   // We don't copy local repositories to avoid duplication
   return {
     repoId: repoPath,
     localPath: repoPath,
-    commitSha,
-    branch,
+    remoteUrl: `file://${repoPath}`,
+    branch: resolvedBranch,
     isGit,
+    commitSha: isGit ? commitSha : undefined,
   };
 }
 
